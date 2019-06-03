@@ -3,7 +3,7 @@ import { createSwitchNavigator, createAppContainer } from 'react-navigation';
 import SudokuPage from './viewPage/SudokuPage.js';
 import mainPage from './viewPage/mainPage.js';
 
-
+//test
 const RootStack = createSwitchNavigator(
   {
     Home: mainPage,
