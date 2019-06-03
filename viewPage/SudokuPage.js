@@ -43,13 +43,15 @@ export default class SudokuPage extends Component {
   makeTableNumber(idx){
     let j = 0;
     numBox = [];
+    let boxCheck = false;
     for(let i=0; i<9; i++){
       let numRow = [];
       let isRow = false;
       while(j<81){
         let component2;
+
         let _rightBorder = (j%9 == 2 || j%9 == 5)?2:0.3;
-        let _buttonColor = (j%9 == idx%9)?'brown': null;
+        let _buttonColor = (j%9 == idx%9||this.doBoxCheck(idx,j))?'brown': null;
         if(j==idx){isRow = true};
 
         component2  = (
@@ -82,6 +84,56 @@ export default class SudokuPage extends Component {
       }
       numBox.push(component1)
     }
+  }
+
+  doBoxCheck(idx,i){
+    let result = false;
+
+    if(idx <= 26){
+    	if(idx%9 <= 2){
+      	if(i%9 <= 2 && i <=26){
+          result = true;
+        }
+      }else if(idx%9 <= 5){
+      	if(i%9 > 2 && i%9 <= 5 && i <=26){
+          result = true;
+        }
+      }else if(idx%9 <= 8){
+      	if(i%9 > 5 && i%9 <= 8 && i <=26){
+          result = true;
+        }
+      }
+    }else if(idx > 26 && idx <= 53){
+    	if(idx%9 <= 2){
+      	if(i%9 <= 2 && i > 26 && i <=53){
+          result = true;
+        }
+      }else if(idx%9 <= 5){
+      	if(i%9 > 2 && i%9 <= 5 && i <=53 && i > 26){
+          result = true;
+        }
+      }else if(idx%9 <= 8){
+      	if(i%9 > 5 && i%9 <= 8 && i <=53 && i > 26){
+          result = true;
+        }
+      }
+    }else if(idx > 53 && idx <= 80){
+    	if(idx%9 <= 2){
+      	if(i%9 <= 2 && i > 53 && i <=80){
+          result = true;
+        }
+      }else if(idx%9 <= 5){
+      	if(i%9 > 2 && i%9 <= 5 && i <=80 && i > 53){
+          result = true;
+        }
+      }else if(idx%9 <= 8){
+      	if(i%9 > 5 && i%9 <= 8 && i <=80 && i > 53){
+          result = true;
+        }
+      }
+    }
+    return result;
+
   }
 
   reduceEnemyHp(){
