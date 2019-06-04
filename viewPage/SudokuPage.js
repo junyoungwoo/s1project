@@ -3,12 +3,14 @@ import {Platform, StyleSheet, Text, View, Button} from 'react-native';
 import * as Progress from 'react-native-progress';
 import CustomAnswerButton from './../custom/CustomAnswerButton';
 import CustomNumberButton from './../custom/CustomNumberButton';
+import Modal from "react-native-modal";
 
 
 let emptyBox = 0;
 let sudokuAnswer = [];
 let sudokuArray = [];
 let numBox = [];
+
 
 export default class SudokuPage extends Component {
   constructor(props){
@@ -27,6 +29,7 @@ export default class SudokuPage extends Component {
       selectIdx: -1,
       selectVal: 0,
       _sudokuArray: sudokuArray,
+      visibleModal: false,
     };
 
     this.makeTableNumber();
@@ -193,12 +196,27 @@ export default class SudokuPage extends Component {
     }
   }
 
+  modalControll(){
+
+    this.setState({
+      visibleModal: !this.state.visibleModal
+    });
+    console.log(this.state.visibleModal);
+  }
 
   render() {
     return (
       <View style={styles.container}>
+
+          <Modal isVisible={this.state.visibleModal}>
+            <View style={{ flex: 1 }}>
+              <Text>Hello!</Text>
+              <Button title="Hide modal" onPress={()=> this.modalControll()} />
+            </View>
+          </Modal>
+
         <View style={styles.header}>
-          <View style={styles.header_menu}></View>
+          <View style={styles.header_menu}><Button title={'menu'} onPress={()=> this.modalControll()}/></View>
           <View style={styles.header_main}>
             <View style={styles.header_main_up}></View>
             <View style={styles.header_main_bottom}>
