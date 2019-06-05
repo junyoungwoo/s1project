@@ -3,7 +3,6 @@ import {Platform, StyleSheet, Text, View, Button} from 'react-native';
 import * as Progress from 'react-native-progress';
 import CustomAnswerButton from './../custom/CustomAnswerButton';
 import CustomNumberButton from './../custom/CustomNumberButton';
-import Modal from "react-native-modal";
 
 
 let emptyBox = 0;
@@ -22,7 +21,7 @@ export default class SudokuPage extends Component {
     this.zeroToEmpty();
 
     this.state = {
-      enemyHp : 9,
+      enemyHp : emptyBox,
       enemyHpGage : 1,
       myHp : 3,
       myHpGage: 1,
@@ -54,8 +53,17 @@ export default class SudokuPage extends Component {
         let component2;
 
         let _rightBorder = (j%9 == 2 || j%9 == 5)?2:0.3;
-        let _buttonColor = (j%9 == idx%9||this.doBoxCheck(idx,j))?'brown': null;
-        if(j==idx){isRow = true};
+        //선택한 박스영역 Color
+        let _buttonColor = (j%9 == idx%9||this.doBoxCheck(idx,j))?'#cca951': null;
+        // 선택숫자와 같은 숫자 Color
+        if(this.isEqualValue(idx,j)){
+          _buttonColor = '#b0d7f2';
+        }
+        // 선택숫자 Color
+        if(j==idx){
+          isRow = true;
+          _buttonColor = '#62b5ef';
+        };
 
         component2  = (
               <CustomNumberButton key={j} title={sudokuArray[j]} rightBorder={_rightBorder} buttonColor={_buttonColor} onPress={this.selectSudokuBox.bind(this,j)}/>
@@ -69,7 +77,7 @@ export default class SudokuPage extends Component {
         j++;
       }
 
-      let rowColor = (isRow)?'brown':'orange';
+      let rowColor = (isRow)?'#cca951':'#f7d580';
       console.log(i + '------------' + rowColor);
       let component1;
       if(i==2||i==5){
@@ -139,10 +147,18 @@ export default class SudokuPage extends Component {
 
   }
 
+  isEqualValue(idx, j){
+    if(sudokuArray[idx] == sudokuArray[j]){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
   reduceEnemyHp(){
     this.setState({
       enemyHp:this.state.enemyHp-1,
-      enemyHpGage:this.state.enemyHpGage-0.115
+      enemyHpGage:this.state.enemyHpGage-(1/emptyBox)
     });
   }
 
@@ -188,7 +204,7 @@ export default class SudokuPage extends Component {
         this.setState({
           _sudokuArray: this.updateArray(num)
         });
-        this.makeTableNumber();
+        this.makeTableNumber(this.state.selectIdx);
         this.reduceEnemyHp();
       }else{
         this.reduceMyHp();
@@ -207,21 +223,13 @@ export default class SudokuPage extends Component {
   render() {
     return (
       <View style={styles.container}>
-
-          <Modal isVisible={this.state.visibleModal}>
-            <View style={{ flex: 1 }}>
-              <Text>Hello!</Text>
-              <Button title="Hide modal" onPress={()=> this.modalControll()} />
-            </View>
-          </Modal>
-
         <View style={styles.header}>
           <View style={styles.header_menu}><Button title={'menu'} onPress={()=> this.modalControll()}/></View>
           <View style={styles.header_main}>
             <View style={styles.header_main_up}></View>
             <View style={styles.header_main_bottom}>
               <Progress.Bar progress={this.state.enemyHpGage} width={100} indeterminateAnimationDuration={10}/>
-              <Text>{this.state.enemyHp} / 9</Text>
+              <Text>{this.state.enemyHp} / {emptyBox}</Text>
             </View>
           </View>
           <View style={styles.header_img}></View>
@@ -258,6 +266,8 @@ export default class SudokuPage extends Component {
             </View>
           </View>
         </View>
+
+
       </View>
     );
   }
@@ -304,7 +314,7 @@ const styles = StyleSheet.create({
   content_table: {
     width: '96%',
     height: '96%',
-    backgroundColor: 'orange'
+    backgroundColor: '#f7d580'
   },
   content_floor: {
     flex:1,
@@ -364,5 +374,10 @@ const styles = StyleSheet.create({
   footer_back_bottom: {
     flex: 1,
     flexDirection: 'row'
-  }
+  },
+  modalDesign: {
+    width: '70%',
+    height: '60%',
+    backgroundColor: 'grey'
+  },
 });
