@@ -10,6 +10,11 @@ let sudokuAnswer = [];
 let sudokuArray = [];
 let numBox = [];
 let enemyPositionX = 0;
+let enemyPositionY = 0;
+let myPositionX = 0;
+let myPositionY = 0;
+let selectPositionX = 0;
+let selectPositionY = 0;
 
 
 export default class SudokuPage extends Component {
@@ -20,7 +25,8 @@ export default class SudokuPage extends Component {
     sudokuAnswer = navigation.getParam('sudokuAnswer');
     sudokuArray = navigation.getParam('sudokuArray');
     this.zeroToEmpty();
-    this.moveAnimation = new Animated.ValueXY({ x: 10, y: 450 })
+    console.log('myPosition = ' + myPositionX);
+    this.moveAnimation = new Animated.ValueXY({ x: myPositionX, y: myPositionY })
 
     this.state = {
       enemyHp : emptyBox,
@@ -58,6 +64,8 @@ export default class SudokuPage extends Component {
         let _rightBorder = (j%9 == 2 || j%9 == 5)?2:0.3;
         //선택한 박스영역 Color
         let _buttonColor = (j%9 == idx%9||this.doBoxCheck(idx,j))?'#cca951': null;
+        // 선택숫자 onlayout 설정
+        let selectPosition = null;
         // 선택숫자와 같은 숫자 Color
         if(this.isEqualValue(idx,j)){
           _buttonColor = '#b0d7f2';
@@ -66,10 +74,14 @@ export default class SudokuPage extends Component {
         if(j==idx){
           isRow = true;
           _buttonColor = '#62b5ef';
+          selectPosition = '{(event) => { this.find_selectPosition(event.nativeEvent.layout) }}';
         };
 
         component2  = (
-              <CustomNumberButton key={j} title={sudokuArray[j]} rightBorder={_rightBorder} buttonColor={_buttonColor} onPress={this.selectSudokuBox.bind(this,j)}/>
+              <CustomNumberButton key={j} title={sudokuArray[j]}
+              rightBorder={_rightBorder} buttonColor={_buttonColor}
+              onPress={this.selectSudokuBox.bind(this,j)}
+              onLayout={selectPosition}/>
            );
 
         numRow.push(component2);
@@ -181,7 +193,7 @@ export default class SudokuPage extends Component {
   }
 
   selectSudokuBox(idx){
-    console.log('idx = ' +  idx);
+    console.warn('idx = ' +  idx);
     this.setState({
       selectIdx:idx,
       selectVal:sudokuArray[idx]
@@ -225,29 +237,44 @@ export default class SudokuPage extends Component {
   }
 
   _moveBall = () => {
-    console.log('start');
+    this.moveAnimation = new Animated.ValueXY({ x: myPositionX, y: myPositionY })
     this.setState({
       isClick: true
     });
     Animated.timing(this.moveAnimation, {
-      toValue: {x: enemyPositionX, y: 72},
+      toValue: {x: enemyPositionX, y: enemyPositionY},
       duration: 1000,
     }).start(() => {
       this.reduceEnemyHp();
       this.setState({ isClick: false });
-      this.moveAnimation = new Animated.ValueXY({ x: 10, y: 450 });
+      this.moveAnimation = new Animated.ValueXY({ x: myPositionX, y: myPositionY });
     });
 
 
   }
 
-  find_dimesions(layout){
+  find_enemyPosition(layout){
     const {x, y, width, height} = layout;
-    console.warn(x);
-    console.warn(y);
-    console.warn(width);
-    console.warn(height);
+    console.warn('EnemyX = ' + x);
+    console.warn('EnemyY = ' + y);
     enemyPositionX = x;
+    enemyPositionY = y;
+  }
+
+  find_myPosition(layout){
+    const {x, y, width, height} = layout;
+    console.warn('myX = ' + x);
+    console.warn('myY = ' + y);
+    myPositionX = x;
+    myPositionY = y;
+  }
+
+  find_selectPosition(layout){
+    const {x, y, width, height} = layout;
+    console.warn('selectX = ' + x);
+    console.warn('selectY = ' + y);
+    selectPositionX = x;
+    selectPositionY = y;
   }
 
   render() {
@@ -263,7 +290,7 @@ export default class SudokuPage extends Component {
               <Text>{this.state.enemyHp} / {emptyBox}</Text>
             </View>
           </View>
-          <View style={styles.header_img} onLayout={(event) => { this.find_dimesions(event.nativeEvent.layout) }}></View>
+          <View style={styles.header_img} onLayout={(event) => { this.find_enemyPosition(event.nativeEvent.layout) }}></View>
         </View>
         <View style={styles.content}>
           <View style={styles.content_table}>
@@ -272,13 +299,15 @@ export default class SudokuPage extends Component {
         </View>
         <View style={styles.adContent}><Text>{this.state.selectIdx} / {this.state.selectVal}</Text></View>
         <View style={styles.footer}>
-          <View style={styles.footer_front}>
+          <View style={styles.footer_front} onLayout={(event) => { this.find_myPosition(event.nativeEvent.layout) }}>
             <View style={styles.footer_front_up1}></View>
             <View style={styles.footer_front_up2}>
               <Progress.Bar progress={this.state.myHpGage} width={50} indeterminateAnimationDuration={10}/>
               <Text>{this.state.myHp}/3</Text>
             </View>
-            <View style={styles.footer_front_bottom}></View>
+            <View style={styles.footer_front_bottom} >
+              <Text>HERE</Text>
+            </View>
           </View>
           <View style={styles.footer_back}>
             <View style={styles.footer_back_up}>
