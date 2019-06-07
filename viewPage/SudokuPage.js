@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View, Button} from 'react-native';
+import {Platform, StyleSheet, Text, View, Button, Animated} from 'react-native';
 import * as Progress from 'react-native-progress';
 import CustomAnswerButton from './../custom/CustomAnswerButton';
 import CustomNumberButton from './../custom/CustomNumberButton';
@@ -9,6 +9,7 @@ let emptyBox = 0;
 let sudokuAnswer = [];
 let sudokuArray = [];
 let numBox = [];
+let enemyPositionX = 0;
 
 
 export default class SudokuPage extends Component {
@@ -19,6 +20,7 @@ export default class SudokuPage extends Component {
     sudokuAnswer = navigation.getParam('sudokuAnswer');
     sudokuArray = navigation.getParam('sudokuArray');
     this.zeroToEmpty();
+    this.moveAnimation = new Animated.ValueXY({ x: 10, y: 450 })
 
     this.state = {
       enemyHp : emptyBox,
@@ -29,6 +31,7 @@ export default class SudokuPage extends Component {
       selectVal: 0,
       _sudokuArray: sudokuArray,
       visibleModal: false,
+      isClick: false,
     };
 
     this.makeTableNumber();
@@ -205,7 +208,8 @@ export default class SudokuPage extends Component {
           _sudokuArray: this.updateArray(num)
         });
         this.makeTableNumber(this.state.selectIdx);
-        this.reduceEnemyHp();
+        this._moveBall();
+
       }else{
         this.reduceMyHp();
       }
@@ -220,9 +224,36 @@ export default class SudokuPage extends Component {
     console.log(this.state.visibleModal);
   }
 
+  _moveBall = () => {
+    console.log('start');
+    this.setState({
+      isClick: true
+    });
+    Animated.timing(this.moveAnimation, {
+      toValue: {x: enemyPositionX, y: 72},
+      duration: 1000,
+    }).start(() => {
+      this.reduceEnemyHp();
+      this.setState({ isClick: false });
+      this.moveAnimation = new Animated.ValueXY({ x: 10, y: 450 });
+    });
+
+
+  }
+
+  find_dimesions(layout){
+    const {x, y, width, height} = layout;
+    console.warn(x);
+    console.warn(y);
+    console.warn(width);
+    console.warn(height);
+    enemyPositionX = x;
+  }
+
   render() {
     return (
       <View style={styles.container}>
+
         <View style={styles.header}>
           <View style={styles.header_menu}><Button title={'menu'} onPress={()=> this.modalControll()}/></View>
           <View style={styles.header_main}>
@@ -232,7 +263,7 @@ export default class SudokuPage extends Component {
               <Text>{this.state.enemyHp} / {emptyBox}</Text>
             </View>
           </View>
-          <View style={styles.header_img}></View>
+          <View style={styles.header_img} onLayout={(event) => { this.find_dimesions(event.nativeEvent.layout) }}></View>
         </View>
         <View style={styles.content}>
           <View style={styles.content_table}>
@@ -262,12 +293,15 @@ export default class SudokuPage extends Component {
               <CustomAnswerButton title={'7'} onPress={() => this.submitAnswer(7)}/>
               <CustomAnswerButton title={'8'} onPress={() => this.submitAnswer(8)}/>
               <CustomAnswerButton title={'9'} onPress={() => this.submitAnswer(9)}/>
-              <CustomAnswerButton title={'메모'} onPress={() => alert('1')}/>
+              <CustomAnswerButton title={'메모'} onPress={this._moveBall}/>
             </View>
           </View>
         </View>
 
-
+        <Animated.View style={[styles.tennisBall,
+          this.moveAnimation.getLayout(),
+          {opacity: this.state.isClick?100:0}]}>
+        </Animated.View>
       </View>
     );
   }
@@ -379,5 +413,14 @@ const styles = StyleSheet.create({
     width: '70%',
     height: '60%',
     backgroundColor: 'grey'
+  },
+  tennisBall: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'greenyellow',
+    borderRadius: 100,
+    width: 50,
+    height: 50,
+    position: 'absolute'
   },
 });
