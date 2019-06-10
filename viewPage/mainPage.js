@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { Text, View, Button } from 'react-native';
+import { Text, View, Button, StyleSheet, Platform } from 'react-native';
+import CustomLevelButton from './../custom/CustomLevelButton';
+import AsyncStorage from '@react-native-community/async-storage';
 
 let sudokuArray = [];
 let possibleCaseArray = [];
@@ -8,8 +10,83 @@ let possibleCaseStack = new Array(81);
 let sudokuAnswer = null;
 let cutStack = [];
 let cut = 0;
+let mapLevel = [];
+let levelBox = [];
+let userLevel = 1;
 
 export default class mainPage extends Component {
+  constructor(props) {
+    super(props);
+    const { navigation } = this.props;
+    this.setValue();
+    this.makeLevelList();
+    this.makeLevelTable();
+    this.getValue();
+  }
+  makeLevelList() {
+    for(let i=0; i<20; i++){
+      if(i<userLevel){
+        mapLevel.push({level:i+1,empty:i+2,isClear:true});
+      }else{
+        mapLevel.push({level:i+1,empty:i+2,isClear:false});
+      }
+    }
+  }
+
+  getValue = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@MyApp_key');
+      console.log(value);
+    } catch(e) {
+      console.log(e);
+    }
+
+
+  }
+
+  setValue = async () => {
+    try {
+      await AsyncStorage.setItem('@MyApp_key', 'my secret value');
+      console.log('Done.');
+    } catch(e) {
+      console.log(e);
+    }
+
+  }
+
+  makeLevelTable() {
+    let j = 0;
+    levelBox = [];
+    for(let i=0; i<5; i++){
+      let levelRow = [];
+      let isRow = false;
+      while(j<20){
+        let component2;
+
+        component2  = (
+              <CustomLevelButton key={j}
+              onPress={this.startGame.bind(this,mapLevel[j].empty)}
+              isClear={mapLevel[j].isClear}/>
+           );
+
+        levelRow.push(component2);
+        if(j % 4 == 3){
+          j++;
+          break;
+        };
+        j++;
+      }
+
+      let component1;
+      component1 = (
+        <View key={i} style={styles.content_floor}>
+          { levelRow }
+        </View>
+      );
+      levelBox.push(component1)
+    }
+  }
+
   startGame(emptyBox) {
     cut = emptyBox;
     sudokuArray = this.makeSudokuArray();
@@ -305,25 +382,114 @@ export default class mainPage extends Component {
   render() {
 
     return (
-      <View
-        style={{
-          flex:1,
-          backgroundColor:'grey',
-          alignItems:'center',
-          justifyContent:'center'
-        }}
-      >
-          <Text> one </Text>
-          <Button title='1'
-          onPress={() => this.startGame(2)}
-          color='#fff'
-          />
-          <Text> two </Text>
-          <Button title='2'
-          onPress={() => this.startGame(3)}
-          color='#fff'
-          />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.header_menu}></View>
+          <View style={styles.header_main}>
+          </View>
+          <View style={styles.header_img}></View>
+        </View>
+        <View style={styles.content}>
+          <View style={styles.content_table}>
+          {levelBox}
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <View style={styles.footer_front} >
+          </View>
+          <View style={styles.footer_empty} >
+          </View>
+          <View style={styles.footer_back} >
+          </View>
+        </View>
+        <View style={styles.adContent}></View>
       </View>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'red'
+  },
+  header: {
+    flex:1.5,
+    flexDirection: 'row',
+    backgroundColor: 'green'
+  },
+  header_menu: {
+    flex:1,
+    backgroundColor: 'grey'
+  },
+  header_main: {
+    flex:3,
+    backgroundColor: 'red'
+  },
+  header_img: {
+    flex:1,
+    backgroundColor: 'pink'
+  },
+  content: {
+    flex:7.5,
+    backgroundColor: 'blue',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  content_table: {
+    width: '85%',
+    height: '96%',
+    backgroundColor: '#f7d580'
+  },
+  content_floor: {
+    flex:1,
+    flexDirection: 'row',
+    margin: 3,
+  },
+  content_row: {
+    flex:1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'yellow'
+  },
+  content_row_a: {
+    flex:1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'red'
+  },
+  adContent: {
+    flex:1,
+    backgroundColor: 'yellow'
+  },
+  footer: {
+    flex:1.5,
+    flexDirection: 'row',
+    backgroundColor: 'orange'
+  },
+  footer_front: {
+    flex:2
+  },
+  footer_empty: {
+    flex:6
+  },
+  footer_back: {
+    flex:2
+  },
+
+  modalDesign: {
+    width: '70%',
+    height: '60%',
+    backgroundColor: 'grey'
+  },
+  tennisBall: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'greenyellow',
+    borderRadius: 100,
+    width: 50,
+    height: 50,
+    position: 'absolute'
+  },
+});

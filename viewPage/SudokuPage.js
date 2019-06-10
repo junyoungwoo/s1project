@@ -25,7 +25,7 @@ export default class SudokuPage extends Component {
     sudokuAnswer = navigation.getParam('sudokuAnswer');
     sudokuArray = navigation.getParam('sudokuArray');
     this.zeroToEmpty();
-    console.log('myPosition = ' + myPositionX);
+    console.warn('myPosition = ' + myPositionX);
     this.moveAnimation = new Animated.ValueXY({ x: myPositionX, y: myPositionY })
 
     this.state = {
@@ -74,14 +74,12 @@ export default class SudokuPage extends Component {
         if(j==idx){
           isRow = true;
           _buttonColor = '#62b5ef';
-          selectPosition = '{(event) => { this.find_selectPosition(event.nativeEvent.layout) }}';
         };
 
         component2  = (
               <CustomNumberButton key={j} title={sudokuArray[j]}
               rightBorder={_rightBorder} buttonColor={_buttonColor}
-              onPress={this.selectSudokuBox.bind(this,j)}
-              onLayout={selectPosition}/>
+              onPress={this.selectSudokuBox.bind(this,j)} />
            );
 
         numRow.push(component2);
@@ -192,7 +190,7 @@ export default class SudokuPage extends Component {
     }
   }
 
-  selectSudokuBox(idx){
+  selectSudokuBox(idx,layout){
     console.warn('idx = ' +  idx);
     this.setState({
       selectIdx:idx,
@@ -299,17 +297,17 @@ export default class SudokuPage extends Component {
         </View>
         <View style={styles.adContent}><Text>{this.state.selectIdx} / {this.state.selectVal}</Text></View>
         <View style={styles.footer}>
-          <View style={styles.footer_front} onLayout={(event) => { this.find_myPosition(event.nativeEvent.layout) }}>
+          <View style={styles.footer_front} >
             <View style={styles.footer_front_up1}></View>
             <View style={styles.footer_front_up2}>
               <Progress.Bar progress={this.state.myHpGage} width={50} indeterminateAnimationDuration={10}/>
               <Text>{this.state.myHp}/3</Text>
             </View>
-            <View style={styles.footer_front_bottom} >
+            <View style={styles.footer_front_bottom}  >
               <Text>HERE</Text>
             </View>
           </View>
-          <View style={styles.footer_back}>
+          <View style={styles.footer_back} onLayout={(event) => { this.find_myPosition(event.nativeEvent.layout) }}>
             <View style={styles.footer_back_up}>
               <CustomAnswerButton title={'1'} onPress={() => this.submitAnswer(1)}/>
               <CustomAnswerButton title={'2'} onPress={() => this.submitAnswer(2)}/>
