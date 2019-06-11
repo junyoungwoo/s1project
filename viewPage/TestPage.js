@@ -1,72 +1,57 @@
 import React, { Component } from 'react';
-import { Animated, TouchableWithoutFeedback, Text, View, StyleSheet } from 'react-native';
+import {
+  AppRegistry,
+  StyleSheet,
+  Text,
+  View
+} from 'react-native';
 
-export default class App extends Component {
-  constructor(props) {
-    super(props)
-    this.moveAnimation = new Animated.ValueXY({ x: 10, y: 450 })
-    this.state = {
-      isClick: false
-    };
+import Swiper from 'react-native-swiper';
 
+const styles = StyleSheet.create({
+  wrapper: {
+  },
+  slide1: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#9DD6EB',
+  },
+  slide2: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#97CAE5',
+  },
+  slide3: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#92BBD9',
+  },
+  text: {
+    color: '#fff',
+    fontSize: 30,
+    fontWeight: 'bold',
   }
+})
 
-  _moveBall = () => {
-    console.log('start');
-    this.setState({
-      isClick: true
-    });
-    Animated.spring(this.moveAnimation, {
-      toValue: {x: 0, y: 100},
-    }).start(() => {this.setState({
-      isClick: false
-    })});
-
-  }
-
-  find_dimesions(layout){
-    const {x, y, width, height} = layout;
-    console.warn(x);
-    console.warn(y);
-    console.warn(width);
-    console.warn(height);
-  }
-
-  render() {
+export default class Swiper extends Component {
+  render(){
     return (
-      <View style={styles.container}>
-        <Animated.View style={[styles.tennisBall,
-          this.moveAnimation.getLayout(),
-          {opacity: this.state.isClick?100:0}]}>
-        </Animated.View>
-        <TouchableWithoutFeedback style={styles.button} onPress={this._moveBall} onLayout={(event) => { this.find_dimesions(event.nativeEvent.layout) }}>
-          <Text style={styles.buttonText}>Press</Text>
-        </TouchableWithoutFeedback>
-      </View>
+      <Swiper style={styles.wrapper} showsButtons={true}>
+        <View style={styles.slide1}>
+          <Text style={styles.text}>Hello Swiper</Text>
+        </View>
+        <View style={styles.slide2}>
+          <Text style={styles.text}>Beautiful</Text>
+        </View>
+        <View style={styles.slide3}>
+          <Text style={styles.text}>And simple</Text>
+        </View>
+      </Swiper>
     );
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ecf0f1',
-  },
-  tennisBall: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'greenyellow',
-    borderRadius: 100,
-    width: 100,
-    height: 100,
-  },
-  button: {
-    paddingTop: 24,
-    paddingBottom: 24,
-  },
-  buttonText: {
-    fontSize: 24,
-    color: '#333',
-  }
-});
+AppRegistry.registerComponent('myproject', () => Swiper);

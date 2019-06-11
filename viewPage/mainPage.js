@@ -18,10 +18,9 @@ export default class mainPage extends Component {
   constructor(props) {
     super(props);
     const { navigation } = this.props;
-    this.setValue();
+    this.getValue();
     this.makeLevelList();
     this.makeLevelTable();
-    this.getValue();
   }
   makeLevelList() {
     for(let i=0; i<20; i++){
@@ -33,23 +32,27 @@ export default class mainPage extends Component {
     }
   }
 
+  // userlevel을 조회 조회데이터가 없으면 1로 저장
   getValue = async () => {
     try {
-      const value = await AsyncStorage.getItem('@MyApp_key');
+      const value = await AsyncStorage.getItem('@User_level')
+      console.log('조회완료');
       console.log(value);
+      if(value == null || value == ''){
+        this.setValue();
+      }
     } catch(e) {
-      console.log(e);
+      console.log('조회안됨');
+      this.setValue();
     }
-
-
   }
 
   setValue = async () => {
     try {
-      await AsyncStorage.setItem('@MyApp_key', 'my secret value');
-      console.log('Done.');
+      await AsyncStorage.setItem('@User_level', '1');
+      console.log('저장완료');
     } catch(e) {
-      console.log(e);
+      console.log('저장실패');
     }
 
   }
@@ -105,6 +108,7 @@ export default class mainPage extends Component {
   	possibleCaseStack.push(this.copy2DArray(possibleCaseArray));
 
     this.props.navigation.navigate("Game",{
+      userLevel: userLevel,
       emptyBox: emptyBox,
       sudokuArray: sudokuArray,
       sudokuAnswer: sudokuAnswer,

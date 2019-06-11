@@ -1,10 +1,13 @@
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View, Button, Animated} from 'react-native';
+import {Platform, StyleSheet, Text, View, Button, Animated, TouchableOpacity, Image} from 'react-native';
 import * as Progress from 'react-native-progress';
 import CustomAnswerButton from './../custom/CustomAnswerButton';
 import CustomNumberButton from './../custom/CustomNumberButton';
+import CustomMenuButton from './../custom/CustomMenuButton';
+import AsyncStorage from '@react-native-community/async-storage';
 
 
+let userLevel = 0;
 let emptyBox = 0;
 let sudokuAnswer = [];
 let sudokuArray = [];
@@ -21,11 +24,12 @@ export default class SudokuPage extends Component {
   constructor(props){
     super(props);
     const { navigation } = this.props;
+    userLevel = navigation.getParam('userLevel');
+    console.log('userLevel = ' + userLevel)
     emptyBox = navigation.getParam('emptyBox');
     sudokuAnswer = navigation.getParam('sudokuAnswer');
     sudokuArray = navigation.getParam('sudokuArray');
     this.zeroToEmpty();
-    console.warn('myPosition = ' + myPositionX);
     this.moveAnimation = new Animated.ValueXY({ x: myPositionX, y: myPositionY })
 
     this.state = {
@@ -173,6 +177,10 @@ export default class SudokuPage extends Component {
       enemyHp:this.state.enemyHp-1,
       enemyHpGage:this.state.enemyHpGage-(1/emptyBox)
     });
+
+    if(this.state.enemyHp == 0){
+      this.gameClear();
+    }
   }
 
   reduceMyHp(){
@@ -191,7 +199,6 @@ export default class SudokuPage extends Component {
   }
 
   selectSudokuBox(idx,layout){
-    console.warn('idx = ' +  idx);
     this.setState({
       selectIdx:idx,
       selectVal:sudokuArray[idx]
@@ -253,36 +260,52 @@ export default class SudokuPage extends Component {
 
   find_enemyPosition(layout){
     const {x, y, width, height} = layout;
-    console.warn('EnemyX = ' + x);
-    console.warn('EnemyY = ' + y);
     enemyPositionX = x;
     enemyPositionY = y;
   }
 
   find_myPosition(layout){
     const {x, y, width, height} = layout;
-    console.warn('myX = ' + x);
-    console.warn('myY = ' + y);
     myPositionX = x;
     myPositionY = y;
   }
 
   find_selectPosition(layout){
     const {x, y, width, height} = layout;
-    console.warn('selectX = ' + x);
-    console.warn('selectY = ' + y);
     selectPositionX = x;
     selectPositionY = y;
   }
 
+  backToMenu() {
+    this.props.navigation.navigate("Home");
+  }
+
+  gameClear(){
+    userLevel += 1;
+    this.mergeValue();
+        this.props.navigation.navigate("Home");
+  }
+
+  mergeValue = async () => {
+    try {
+      const value = await AsyncStorage.mergeItem('@User_level');
+      console.log('clear 조회완료 = ' + value);
+    } catch(e) {
+      console.log('조회실패');
+    }
+  }
+
+
   render() {
+
     return (
       <View style={styles.container}>
-
         <View style={styles.header}>
-          <View style={styles.header_menu}><Button title={'menu'} onPress={()=> this.modalControll()}/></View>
+          <View style={styles.header_menu}>
+            <CustomMenuButton menuKind={'menu'} onPress={() => this.backToMenu()} />
+          </View>
           <View style={styles.header_main}>
-            <View style={styles.header_main_up}></View>
+            <View style={styles.header_main_up}><Text>{userLevel}</Text></View>
             <View style={styles.header_main_bottom}>
               <Progress.Bar progress={this.state.enemyHpGage} width={100} indeterminateAnimationDuration={10}/>
               <Text>{this.state.enemyHp} / {emptyBox}</Text>
@@ -347,6 +370,13 @@ const styles = StyleSheet.create({
   header_menu: {
     flex:1,
     backgroundColor: 'grey'
+  },
+  menu_button: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 3,
+    borderRadius: 5
   },
   header_main: {
     flex:3,
