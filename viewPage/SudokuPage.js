@@ -31,7 +31,7 @@ export default class SudokuPage extends Component {
     sudokuArray = navigation.getParam('sudokuArray');
     this.zeroToEmpty();
     this.moveAnimation = new Animated.ValueXY({ x: myPositionX, y: myPositionY })
-
+    this.getValue();
     this.state = {
       enemyHp : emptyBox,
       enemyHpGage : 1,
@@ -277,24 +277,35 @@ export default class SudokuPage extends Component {
   }
 
   backToMenu() {
-    this.props.navigation.navigate("Home");
+    this.resetValue();
+    //this.props.navigation.navigate("Home");
   }
 
   gameClear(){
     userLevel += 1;
-    this.mergeValue();
+    this.resetValue();
         this.props.navigation.navigate("Home");
   }
 
-  mergeValue = async () => {
+  resetValue = async () => {
     try {
-      const value = await AsyncStorage.mergeItem('@User_level');
-      console.log('clear 조회완료 = ' + value);
+      await AsyncStorage.removeItem('@User_level');
+      console.log('remove완료');
+      await AsyncStorage.setItem('@User_level', '2');
     } catch(e) {
-      console.log('조회실패');
+      console.log('remove실패');
     }
   }
 
+  getValue = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@User_level')
+      console.log('sudokuPage 조회완료');
+      console.log(value);
+    } catch(e) {
+      console.log('sudokuPage 조회안됨');
+    }
+  }
 
   render() {
 

@@ -12,17 +12,22 @@ let cutStack = [];
 let cut = 0;
 let mapLevel = [];
 let levelBox = [];
-let userLevel = 1;
 
 export default class mainPage extends Component {
   constructor(props) {
     super(props);
     const { navigation } = this.props;
-    this.getValue();
-    this.makeLevelList();
+    this.makeLevelList(3);
     this.makeLevelTable();
+    // this.getValue().then((res) => {
+    //   this.makeLevelList(res).then((res1) => {
+    //     this.makeLevelTable(res1);
+    //   });
+    // })
   }
-  makeLevelList() {
+
+  makeLevelList(userLevel) {
+    console.log('USER LEVEL CHECK = ' + userLevel)
     for(let i=0; i<20; i++){
       if(i<userLevel){
         mapLevel.push({level:i+1,empty:i+2,isClear:true});
@@ -30,22 +35,34 @@ export default class mainPage extends Component {
         mapLevel.push({level:i+1,empty:i+2,isClear:false});
       }
     }
+    console.log(mapLevel);
   }
 
-  // userlevel을 조회 조회데이터가 없으면 1로 저장
-  getValue = async () => {
-    try {
-      const value = await AsyncStorage.getItem('@User_level')
-      console.log('조회완료');
-      console.log(value);
-      if(value == null || value == ''){
-        this.setValue();
+  async getValue() {
+      try {
+        let _userLevel = await AsyncStorage.getItem('@User_level');
+        console.log('조회성공');
+        return _userLevel;
+      } catch(error) {
+        console.log('조회실패');
       }
-    } catch(e) {
-      console.log('조회안됨');
-      this.setValue();
-    }
   }
+  // userlevel을 조회 조회데이터가 없으면 1로 저장
+  // async getValue() {
+  //   try {
+  //     const value = await AsyncStorage.getItem('@User_level')
+  //     console.log('조회완료');
+  //     console.log(value);
+  //     this.setState({userLevel: value});
+  //     console.log('데이터체크 = ' + this.state.userLevel);
+  //     if(value == null || value == ''){
+  //       this.setValue();
+  //     }
+  //   } catch(e) {
+  //     console.log('조회안됨');
+  //     this.setValue();
+  //   }
+  // }
 
   setValue = async () => {
     try {
@@ -58,6 +75,7 @@ export default class mainPage extends Component {
   }
 
   makeLevelTable() {
+    console.log('테이블완성')
     let j = 0;
     levelBox = [];
     for(let i=0; i<5; i++){
@@ -65,7 +83,7 @@ export default class mainPage extends Component {
       let isRow = false;
       while(j<20){
         let component2;
-
+        console.log('table list ------------'+this,mapLevel[j].empty);
         component2  = (
               <CustomLevelButton key={j}
               onPress={this.startGame.bind(this,mapLevel[j].empty)}
@@ -86,6 +104,7 @@ export default class mainPage extends Component {
           { levelRow }
         </View>
       );
+
       levelBox.push(component1)
     }
   }
@@ -108,7 +127,7 @@ export default class mainPage extends Component {
   	possibleCaseStack.push(this.copy2DArray(possibleCaseArray));
 
     this.props.navigation.navigate("Game",{
-      userLevel: userLevel,
+      //userLevel: '',
       emptyBox: emptyBox,
       sudokuArray: sudokuArray,
       sudokuAnswer: sudokuAnswer,

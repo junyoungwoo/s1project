@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   }
 })
 
-export default class Swiper extends Component {
+export default class TestPage extends Component {
   render(){
     return (
       <Swiper style={styles.wrapper} showsButtons={true}>
