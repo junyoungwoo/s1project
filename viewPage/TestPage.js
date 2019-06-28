@@ -47,7 +47,7 @@ export default class TestPage extends Component {
           <Text style={styles.text}>Beautiful</Text>
         </View>
         <View style={styles.slide3}>
-          <Text style={styles.text}>And simple</Text>
+          <Text style={styles.text}>And simple1111</Text>
         </View>
       </Swiper>
     );
