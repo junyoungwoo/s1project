@@ -10,59 +10,58 @@ let possibleCaseStack = new Array(81);
 let sudokuAnswer = null;
 let cutStack = [];
 let cut = 0;
-let mapLevel = [];
-let levelBox = [];
+let _mapLevel = [];
+
+//let userLevel = 1;
 
 export default class mainPage extends Component {
   constructor(props) {
     super(props);
     const { navigation } = this.props;
-    this.makeLevelList(3);
-    this.makeLevelTable();
-    // this.getValue().then((res) => {
-    //   this.makeLevelList(res).then((res1) => {
-    //     this.makeLevelTable(res1);
-    //   });
-    // })
+     this.state = {
+       userLevel: 0,
+       mapLevel : [],
+       levelBox: [],
+     };
+   this.getValue().then(() => {
+      this.makeLevelList();
+      this.makeLevelTable();
+   });
   }
-
-  makeLevelList(userLevel) {
-    console.log('USER LEVEL CHECK = ' + userLevel)
+  makeLevelList() {
+    console.log("makeLevelList");
+    console.log("typeof userLevel = " + typeof userLevel);
+    _userLevel = parseInt(this.state.userLevel);
+    console.log(typeof _userLevel);
     for(let i=0; i<20; i++){
-      if(i<userLevel){
-        mapLevel.push({level:i+1,empty:i+2,isClear:true});
+      if(i<_userLevel){
+        console.log("true");
+        _mapLevel.push({level:i+1,empty:i+2,isClear:true});
       }else{
-        mapLevel.push({level:i+1,empty:i+2,isClear:false});
+        console.log("false");
+        _mapLevel.push({level:i+1,empty:i+2,isClear:false});
       }
+      console.log("mapLevel = " + _mapLevel[i].level );
     }
-    console.log(mapLevel);
+    this.setState({
+      mapLevel:_mapLevel
+    });
   }
 
-  async getValue() {
-      try {
-        let _userLevel = await AsyncStorage.getItem('@User_level');
-        console.log('조회성공');
-        return _userLevel;
-      } catch(error) {
-        console.log('조회실패');
-      }
-  }
   // userlevel을 조회 조회데이터가 없으면 1로 저장
-  // async getValue() {
-  //   try {
-  //     const value = await AsyncStorage.getItem('@User_level')
-  //     console.log('조회완료');
-  //     console.log(value);
-  //     this.setState({userLevel: value});
-  //     console.log('데이터체크 = ' + this.state.userLevel);
-  //     if(value == null || value == ''){
-  //       this.setValue();
-  //     }
-  //   } catch(e) {
-  //     console.log('조회안됨');
-  //     this.setValue();
-  //   }
-  // }
+  getValue = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@User_level')
+      console.log('조회완료');
+      console.log(value);
+      this.setState({
+        userLevel: value
+      });
+    } catch(e) {
+      console.log('조회안됨');
+      this.setValue();
+    }
+  }
 
   setValue = async () => {
     try {
@@ -75,19 +74,20 @@ export default class mainPage extends Component {
   }
 
   makeLevelTable() {
-    console.log('테이블완성')
+    console.log("makeLevelTable");
     let j = 0;
-    levelBox = [];
+    let _levelBox = [];
     for(let i=0; i<5; i++){
       let levelRow = [];
       let isRow = false;
       while(j<20){
+        console.log(this.state.mapLevel[j].empty);
         let component2;
-        console.log('table list ------------'+this,mapLevel[j].empty);
+
         component2  = (
               <CustomLevelButton key={j}
-              onPress={this.startGame.bind(this,mapLevel[j].empty)}
-              isClear={mapLevel[j].isClear}/>
+              onPress={this.startGame.bind(this,this.state.mapLevel[j].empty)}
+              isClear={this.state.mapLevel[j].isClear}/>
            );
 
         levelRow.push(component2);
@@ -104,9 +104,11 @@ export default class mainPage extends Component {
           { levelRow }
         </View>
       );
-
-      levelBox.push(component1)
+      _levelBox.push(component1)
     }
+    this.setState({
+      levelBox:_levelBox
+    })
   }
 
   startGame(emptyBox) {
@@ -127,7 +129,7 @@ export default class mainPage extends Component {
   	possibleCaseStack.push(this.copy2DArray(possibleCaseArray));
 
     this.props.navigation.navigate("Game",{
-      //userLevel: '',
+      userLevel: this.state.userLevel,
       emptyBox: emptyBox,
       sudokuArray: sudokuArray,
       sudokuAnswer: sudokuAnswer,
@@ -403,8 +405,7 @@ export default class mainPage extends Component {
   }
 
   render() {
-
-    return (
+      return (
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.header_menu}></View>
@@ -414,7 +415,7 @@ export default class mainPage extends Component {
         </View>
         <View style={styles.content}>
           <View style={styles.content_table}>
-          {levelBox}
+          {this.state.levelBox}
           </View>
         </View>
 
