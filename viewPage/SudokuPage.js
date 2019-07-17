@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View, Button, Animated, TouchableOpacity, Image} from 'react-native';
+import {Platform, StyleSheet, Text, View, Button, Animated, TouchableOpacity, Image, Easing} from 'react-native';
 import * as Progress from 'react-native-progress';
 import CustomAnswerButton from './../custom/CustomAnswerButton';
 import CustomNumberButton from './../custom/CustomNumberButton';
@@ -14,8 +14,6 @@ let sudokuArray = [];
 let numBox = [];
 let enemyPositionX = 0;
 let enemyPositionY = 0;
-let myPositionX = 0;
-let myPositionY = 0;
 let selectPositionX = 0;
 let selectPositionY = 0;
 
@@ -30,7 +28,7 @@ export default class SudokuPage extends Component {
     sudokuAnswer = navigation.getParam('sudokuAnswer');
     sudokuArray = navigation.getParam('sudokuArray');
     this.zeroToEmpty();
-    this.moveAnimation = new Animated.ValueXY({ x: myPositionX, y: myPositionY })
+    this.myAnimation = new Animated.Value(0);
     this.getValue();
     this.state = {
       enemyHp : emptyBox,
@@ -241,44 +239,43 @@ export default class SudokuPage extends Component {
     console.log(this.state.visibleModal);
   }
 
+  componentWillMount(){
+      this.x = this.myAnimation.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [0, 150, 300],
+      });
+
+      this.y = this.myAnimation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [400, 5],
+      });
+
+      this.spin = this.myAnimation.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg']
+      });
+  };
   _moveBall = () => {
-    this.moveAnimation = new Animated.ValueXY({ x: myPositionX, y: myPositionY })
     this.setState({
       isClick: true
     });
-    Animated.timing(this.moveAnimation, {
-      toValue: {x: enemyPositionX, y: enemyPositionY},
-      duration: 1000,
+
+    Animated.timing(this.myAnimation, {
+      toValue: 1,
+      duration: 10000,
+      easing: Easing.linear
     }).start(() => {
       this.reduceEnemyHp();
       this.setState({ isClick: false });
-      this.moveAnimation = new Animated.ValueXY({ x: myPositionX, y: myPositionY });
+      this.myAnimation = new Animated.Value(0);
     });
 
 
-  }
-
-  find_enemyPosition(layout){
-    const {x, y, width, height} = layout;
-    enemyPositionX = x;
-    enemyPositionY = y;
-  }
-
-  find_myPosition(layout){
-    const {x, y, width, height} = layout;
-    myPositionX = x;
-    myPositionY = y;
-  }
-
-  find_selectPosition(layout){
-    const {x, y, width, height} = layout;
-    selectPositionX = x;
-    selectPositionY = y;
   }
 
   backToMenu() {
     this.resetValue();
-    //this.props.navigation.navigate("Home");
+    this.props.navigation.navigate("Home");
   }
 
   gameClear(){
@@ -322,7 +319,7 @@ export default class SudokuPage extends Component {
               <Text>{this.state.enemyHp} / {emptyBox}</Text>
             </View>
           </View>
-          <View style={styles.header_img} onLayout={(event) => { this.find_enemyPosition(event.nativeEvent.layout) }}></View>
+          <View style={styles.header_img}></View>
         </View>
         <View style={styles.content}>
           <View style={styles.content_table}>
@@ -337,11 +334,11 @@ export default class SudokuPage extends Component {
               <Progress.Bar progress={this.state.myHpGage} width={50} indeterminateAnimationDuration={10}/>
               <Text>{this.state.myHp}/3</Text>
             </View>
-            <View style={styles.footer_front_bottom}  >
+            <View style={styles.footer_front_bottom} >
               <Text>HERE</Text>
             </View>
           </View>
-          <View style={styles.footer_back} onLayout={(event) => { this.find_myPosition(event.nativeEvent.layout) }}>
+          <View style={styles.footer_back} >
             <View style={styles.footer_back_up}>
               <CustomAnswerButton title={'1'} onPress={() => this.submitAnswer(1)}/>
               <CustomAnswerButton title={'2'} onPress={() => this.submitAnswer(2)}/>
@@ -359,10 +356,14 @@ export default class SudokuPage extends Component {
           </View>
         </View>
 
-        <Animated.View style={[styles.tennisBall,
-          this.moveAnimation.getLayout(),
-          {opacity: this.state.isClick?100:0}]}>
-        </Animated.View>
+        <Animated.Image
+        style={[styles.tennisBall,
+          { transform: [{translateX:this.x}]},
+          {opacity: this.state.isClick?100:0}]}
+        source={require('./../img/carrot.png')}
+        >
+        </Animated.Image>
+
       </View>
     );
   }
@@ -485,10 +486,8 @@ const styles = StyleSheet.create({
   tennisBall: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'greenyellow',
-    borderRadius: 100,
-    width: 50,
-    height: 50,
-    position: 'absolute'
+    width: 25,
+    height: 40,
+    //position: 'absolute'
   },
 });
