@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View, Button, Animated, TouchableOpacity, Image, Easing} from 'react-native';
+import {Platform, StyleSheet, Text, View, Button, Animated, TouchableOpacity, Image, Easing, Dimensions} from 'react-native';
 import * as Progress from 'react-native-progress';
 import CustomAnswerButton from './../custom/CustomAnswerButton';
 import CustomNumberButton from './../custom/CustomNumberButton';
@@ -28,7 +28,7 @@ export default class SudokuPage extends Component {
     sudokuAnswer = navigation.getParam('sudokuAnswer');
     sudokuArray = navigation.getParam('sudokuArray');
     this.zeroToEmpty();
-    this.myAnimation = new Animated.Value(0);
+
     this.getValue();
     this.state = {
       enemyHp : emptyBox,
@@ -40,6 +40,7 @@ export default class SudokuPage extends Component {
       _sudokuArray: sudokuArray,
       visibleModal: false,
       isClick: false,
+      myAnimation: new Animated.Value(0),
     };
 
     this.makeTableNumber();
@@ -81,7 +82,7 @@ export default class SudokuPage extends Component {
         component2  = (
               <CustomNumberButton key={j} title={sudokuArray[j]}
               rightBorder={_rightBorder} buttonColor={_buttonColor}
-              onPress={this.selectSudokuBox.bind(this,j)} />
+              onPress={(e) => this.selectSudokuBox(e,j)} />
            );
 
         numRow.push(component2);
@@ -196,7 +197,13 @@ export default class SudokuPage extends Component {
     }
   }
 
-  selectSudokuBox(idx,layout){
+  selectSudokuBox(e,idx){
+    for (output in e){
+            console.log("노드 값: "+JSON.stringify(output))
+}
+    let touchHistory = JSON.stringify(e.touchHistory);
+    console.log("touchHistory = " + JSON.stringify(touchHistory));
+
     this.setState({
       selectIdx:idx,
       selectVal:sudokuArray[idx]
@@ -240,34 +247,38 @@ export default class SudokuPage extends Component {
   }
 
   componentWillMount(){
-      this.x = this.myAnimation.interpolate({
-        inputRange: [0, 0.5, 1],
-        outputRange: [0, 150, 300],
+    this.myXYS();
+  }
+
+  myXYS(){
+      this.x = this.state.myAnimation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, Dimensions.get('window').width - 100],
       });
 
-      this.y = this.myAnimation.interpolate({
+      this.y = this.state.myAnimation.interpolate({
         inputRange: [0, 1],
-        outputRange: [400, 5],
+        outputRange: [0, -Dimensions.get('window').height + 100],
       });
 
-      this.spin = this.myAnimation.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg']
+      this.spin = this.state.myAnimation.interpolate({
+        inputRange: [0, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1],
+        outputRange: ['0deg', '360deg', '0deg', '360deg', '0deg', '360deg'
+                     , '0deg', '360deg', '0deg', '360deg', '0deg']
       });
   };
   _moveBall = () => {
     this.setState({
       isClick: true
     });
-
-    Animated.timing(this.myAnimation, {
+    this.myXYS();
+    Animated.timing(this.state.myAnimation, {
       toValue: 1,
-      duration: 10000,
-      easing: Easing.linear
+      duration: 1000,
+      //easing: Easing.linear
     }).start(() => {
       this.reduceEnemyHp();
-      this.setState({ isClick: false });
-      this.myAnimation = new Animated.Value(0);
+      this.setState({ isClick: false, myAnimation: new Animated.Value(0)});
     });
 
 
@@ -303,6 +314,7 @@ export default class SudokuPage extends Component {
       console.log('sudokuPage 조회안됨');
     }
   }
+
 
   render() {
 
@@ -356,13 +368,18 @@ export default class SudokuPage extends Component {
           </View>
         </View>
 
-        <Animated.Image
-        style={[styles.tennisBall,
-          { transform: [{translateX:this.x}]},
-          {opacity: this.state.isClick?100:0}]}
-        source={require('./../img/carrot.png')}
+        <Animated.View
+        style={[styles.tennisBall1,{ transform: [{translateY:this.y},{translateX:this.x}]}
+        ]}
         >
-        </Animated.Image>
+            <Animated.Image
+            style={[styles.tennisBall,
+              { transform: [{rotate:this.spin}]},{opacity: this.state.isClick?100:0}
+              ]}
+            source={require('./../img/carrot.png')}
+            >
+            </Animated.Image>
+        </Animated.View>
 
       </View>
     );
@@ -489,5 +506,11 @@ const styles = StyleSheet.create({
     width: 25,
     height: 40,
     //position: 'absolute'
+  },
+  tennisBall1: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: 80,
   },
 });
