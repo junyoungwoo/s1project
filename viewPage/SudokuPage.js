@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View, Button, Animated, TouchableOpacity, Image, Easing, Dimensions} from 'react-native';
+import {Platform, StyleSheet, Text, View, Button, Animated, TouchableOpacity, Image, Easing,
+  Dimensions, PanResponder} from 'react-native';
 import * as Progress from 'react-native-progress';
 import CustomAnswerButton from './../custom/CustomAnswerButton';
 import CustomNumberButton from './../custom/CustomNumberButton';
@@ -44,6 +45,7 @@ export default class SudokuPage extends Component {
     };
 
     this.makeTableNumber();
+    this.getResponder;
   }
 
   zeroToEmpty(){
@@ -82,7 +84,7 @@ export default class SudokuPage extends Component {
         component2  = (
               <CustomNumberButton key={j} title={sudokuArray[j]}
               rightBorder={_rightBorder} buttonColor={_buttonColor}
-              onPress={(e) => this.selectSudokuBox(e,j)} />
+              onPress={this.selectSudokuBox.bind(this,j)} />
            );
 
         numRow.push(component2);
@@ -197,13 +199,8 @@ export default class SudokuPage extends Component {
     }
   }
 
-  selectSudokuBox(e,idx){
-    for (output in e){
-            console.log("노드 값: "+JSON.stringify(output))
-}
-    let touchHistory = JSON.stringify(e.touchHistory);
-    console.log("touchHistory = " + JSON.stringify(touchHistory));
-
+  selectSudokuBox(idx){
+    console.log('idx = ' + idx);
     this.setState({
       selectIdx:idx,
       selectVal:sudokuArray[idx]
@@ -248,6 +245,27 @@ export default class SudokuPage extends Component {
 
   componentWillMount(){
     this.myXYS();
+    this.getResponder = PanResponder.create({
+      onStartShouldSetPanResponder: (event, gestureState) => true,
+      onStartShouldSetPanResponderCapture: (event, gestureState) => true,
+      onMoveShouldSetPanResponder: (event, gestureState) => {
+        const { dx, dy } = gestureState
+        return (dx > 2 || dx < -2 || dy > 2 || dy < -2)
+      },
+      onMoveShouldSetPanResponderCapture: (event, gestureState) => {
+        const { dx, dy } = gestureState
+        return (dx > 2 || dx < -2 || dy > 2 || dy < -2)
+      },
+      onPanResponderGrant: (event, gestureState) => false,
+      onPanResponderMove: (event, gestureState) => false,
+      onPanResponderRelease: (event, gestureState) =>{
+        selectPositionX = event.nativeEvent.locationX.toFixed(2);
+        selectPositionY = event.nativeEvent.locationY.toFixed(2);
+        console.log('selectPositionX = ' + selectPositionX);
+        console.log('selectPositionY = ' + selectPositionY);
+
+      }
+    });
   }
 
   myXYS(){
@@ -258,7 +276,7 @@ export default class SudokuPage extends Component {
 
       this.y = this.state.myAnimation.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, -Dimensions.get('window').height + 100],
+        outputRange: [500, 0],
       });
 
       this.spin = this.state.myAnimation.interpolate({
@@ -274,7 +292,7 @@ export default class SudokuPage extends Component {
     this.myXYS();
     Animated.timing(this.state.myAnimation, {
       toValue: 1,
-      duration: 1000,
+      duration: 3000,
       //easing: Easing.linear
     }).start(() => {
       this.reduceEnemyHp();
@@ -319,7 +337,7 @@ export default class SudokuPage extends Component {
   render() {
 
     return (
-      <View style={styles.container}>
+      <View style={styles.container} >
         <View style={styles.header}>
           <View style={styles.header_menu}>
             <CustomMenuButton menuKind={'menu'} onPress={() => this.backToMenu()} />
@@ -334,7 +352,7 @@ export default class SudokuPage extends Component {
           <View style={styles.header_img}></View>
         </View>
         <View style={styles.content}>
-          <View style={styles.content_table}>
+          <View style={styles.content_table} {...this.getResponder.panHandlers}>
             {numBox}
           </View>
         </View>
@@ -389,7 +407,7 @@ export default class SudokuPage extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'red'
+    backgroundColor: 'pink'
   },
   header: {
     flex:1.5,
@@ -512,5 +530,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 80,
     height: 80,
+    position: 'absolute'
   },
 });
