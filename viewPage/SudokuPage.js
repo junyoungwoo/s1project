@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View, Button, Animated, TouchableOpacity, Image, Easing,
-  Dimensions, PanResponder} from 'react-native';
+  Dimensions} from 'react-native';
 import * as Progress from 'react-native-progress';
 import CustomAnswerButton from './../custom/CustomAnswerButton';
 import CustomNumberButton from './../custom/CustomNumberButton';
@@ -13,11 +13,6 @@ let emptyBox = 0;
 let sudokuAnswer = [];
 let sudokuArray = [];
 let numBox = [];
-let enemyPositionX = 0;
-let enemyPositionY = 0;
-let selectPositionX = 0;
-let selectPositionY = 0;
-
 
 export default class SudokuPage extends Component {
   constructor(props){
@@ -40,12 +35,13 @@ export default class SudokuPage extends Component {
       selectVal: 0,
       _sudokuArray: sudokuArray,
       visibleModal: false,
-      isClick: false,
+      myShot: false,
+      enemyShot: false,
       myAnimation: new Animated.Value(0),
+      enemyAnimation: new Animated.Value(0),
     };
 
     this.makeTableNumber();
-    this.getResponder;
   }
 
   zeroToEmpty(){
@@ -84,8 +80,9 @@ export default class SudokuPage extends Component {
         component2  = (
               <CustomNumberButton key={j} title={sudokuArray[j]}
               rightBorder={_rightBorder} buttonColor={_buttonColor}
-              onPress={this.selectSudokuBox.bind(this,j)} />
+              onPress={this.selectSudokuBox.bind(this,j) } />
            );
+
 
         numRow.push(component2);
         if(j % 9 == 8){
@@ -96,7 +93,6 @@ export default class SudokuPage extends Component {
       }
 
       let rowColor = (isRow)?'#cca951':'#f7d580';
-      console.log(i + '------------' + rowColor);
       let component1;
       if(i==2||i==5){
       component1 = (
@@ -199,22 +195,24 @@ export default class SudokuPage extends Component {
     }
   }
 
-  selectSudokuBox(idx){
-    console.log('idx = ' + idx);
+  selectSudokuBox(idx, e){
     this.setState({
       selectIdx:idx,
-      selectVal:sudokuArray[idx]
+      selectVal:sudokuArray[idx],
+      locationX:e.nativeEvent.locationX,
+      locationY:e.nativeEvent.locationY,
     });
     this.makeTableNumber(idx);
+    console.log('****************selectSudokuBox****************')
+    console.log('this.state.locationX = ' + this.state.locationX);
+    console.log('this.state.locationY = ' + this.state.locationY);
   }
 
   updateArray(num){
-    if(sudokuArray[this.state.selectIdx] == ''){
-      for(let i=0; i<81; i++){
-        if(i==this.state.selectIdx){
-          sudokuArray[i] = num;
-          break;
-        }
+    for(let i=0; i<81; i++){
+      if(i==this.state.selectIdx){
+        sudokuArray[i] = num;
+        break;
       }
     }
     return sudokuArray;
@@ -222,15 +220,15 @@ export default class SudokuPage extends Component {
 
   submitAnswer(num){
     if(this.state.selectVal == ''){
-      if(this.checkAnswer(num)){
-        this.setState({
-          _sudokuArray: this.updateArray(num)
-        });
-        this.makeTableNumber(this.state.selectIdx);
-        this._moveBall();
+      this.setState({
+        _sudokuArray: this.updateArray(num)
+      });
+      this.makeTableNumber(this.state.selectIdx);
 
+      if(this.checkAnswer(num)){
+        this.myShooting();
       }else{
-        this.reduceMyHp();
+        this.enemyShooting();
       }
     }
   }
@@ -245,27 +243,7 @@ export default class SudokuPage extends Component {
 
   componentWillMount(){
     this.myXYS();
-    this.getResponder = PanResponder.create({
-      onStartShouldSetPanResponder: (event, gestureState) => true,
-      onStartShouldSetPanResponderCapture: (event, gestureState) => true,
-      onMoveShouldSetPanResponder: (event, gestureState) => {
-        const { dx, dy } = gestureState
-        return (dx > 2 || dx < -2 || dy > 2 || dy < -2)
-      },
-      onMoveShouldSetPanResponderCapture: (event, gestureState) => {
-        const { dx, dy } = gestureState
-        return (dx > 2 || dx < -2 || dy > 2 || dy < -2)
-      },
-      onPanResponderGrant: (event, gestureState) => false,
-      onPanResponderMove: (event, gestureState) => false,
-      onPanResponderRelease: (event, gestureState) =>{
-        selectPositionX = event.nativeEvent.locationX.toFixed(2);
-        selectPositionY = event.nativeEvent.locationY.toFixed(2);
-        console.log('selectPositionX = ' + selectPositionX);
-        console.log('selectPositionY = ' + selectPositionY);
-
-      }
-    });
+    this.enemyXYS();
   }
 
   myXYS(){
@@ -285,9 +263,27 @@ export default class SudokuPage extends Component {
                      , '0deg', '360deg', '0deg', '360deg', '0deg']
       });
   };
-  _moveBall = () => {
+
+  enemyXYS(){
+      this.ex = this.state.enemyAnimation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [Dimensions.get('window').width - 100, 0],
+      });
+
+      this.ey = this.state.enemyAnimation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 500],
+      });
+
+      this.espin = this.state.enemyAnimation.interpolate({
+        inputRange: [0, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1],
+        outputRange: ['0deg', '360deg', '0deg', '360deg', '0deg', '360deg'
+                     , '0deg', '360deg', '0deg', '360deg', '0deg']
+      });
+  };
+  myShooting = () => {
     this.setState({
-      isClick: true
+      myShot: true
     });
     this.myXYS();
     Animated.timing(this.state.myAnimation, {
@@ -296,10 +292,27 @@ export default class SudokuPage extends Component {
       //easing: Easing.linear
     }).start(() => {
       this.reduceEnemyHp();
-      this.setState({ isClick: false, myAnimation: new Animated.Value(0)});
+      this.setState({ myShot: false, myAnimation: new Animated.Value(0)});
     });
+  }
 
-
+  enemyShooting = () => {
+    this.setState({
+      enemyShot: true
+    });
+    this.enemyXYS();
+    Animated.timing(this.state.enemyAnimation, {
+      toValue: 1,
+      duration: 3000,
+      //easing: Easing.linear
+    }).start(() => {
+      this.setState({
+        _sudokuArray: this.updateArray('')
+      });
+      this.makeTableNumber(this.state.selectIdx);
+      this.reduceMyHp();
+      this.setState({ enemyShot: false, enemyAnimation: new Animated.Value(0)});
+    });
   }
 
   backToMenu() {
@@ -352,8 +365,8 @@ export default class SudokuPage extends Component {
           <View style={styles.header_img}></View>
         </View>
         <View style={styles.content}>
-          <View style={styles.content_table} {...this.getResponder.panHandlers}>
-            {numBox}
+          <View style={styles.content_table} >
+              {numBox}
           </View>
         </View>
         <View style={styles.adContent}><Text>{this.state.selectIdx} / {this.state.selectVal}</Text></View>
@@ -381,7 +394,7 @@ export default class SudokuPage extends Component {
               <CustomAnswerButton title={'7'} onPress={() => this.submitAnswer(7)}/>
               <CustomAnswerButton title={'8'} onPress={() => this.submitAnswer(8)}/>
               <CustomAnswerButton title={'9'} onPress={() => this.submitAnswer(9)}/>
-              <CustomAnswerButton title={'메모'} onPress={this._moveBall}/>
+              <CustomAnswerButton title={'메모'} onPress={this.myShooting}/>
             </View>
           </View>
         </View>
@@ -392,7 +405,20 @@ export default class SudokuPage extends Component {
         >
             <Animated.Image
             style={[styles.tennisBall,
-              { transform: [{rotate:this.spin}]},{opacity: this.state.isClick?100:0}
+              { transform: [{rotate:this.spin}]},{opacity: this.state.myShot?100:0}
+              ]}
+            source={require('./../img/carrot.png')}
+            >
+            </Animated.Image>
+        </Animated.View>
+
+        <Animated.View
+        style={[styles.tennisBall1,{ transform: [{translateY:this.ey},{translateX:this.ex}]}
+        ]}
+        >
+            <Animated.Image
+            style={[styles.tennisBall,
+              { transform: [{rotate:this.espin}]},{opacity: this.state.enemyShot?100:0}
               ]}
             source={require('./../img/carrot.png')}
             >
@@ -447,12 +473,12 @@ const styles = StyleSheet.create({
     flex:7,
     backgroundColor: 'blue',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   content_table: {
     width: '96%',
     height: '96%',
-    backgroundColor: '#f7d580'
+    backgroundColor: '#f7d580',
   },
   content_floor: {
     flex:1,
